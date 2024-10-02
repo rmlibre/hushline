@@ -1,0 +1,39 @@
+diff --git a/Makefile b/Makefile
+index 89ba610..e7c1a1c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -28,13 +28,13 @@ lint: ## Lint the code
+ 	poetry run ruff format --check && \
+ 	poetry run ruff check && \
+ 	poetry run mypy . && \
+-	docker compose run --rm app npx prettier --check ./*.md ./docs ./.github/workflows/* ./hushline
++	podman compose run --rm app npx prettier --check ./*.md ./docs ./.github/workflows/* ./hushline
+ 
+ .PHONY: fix
+ fix: ## Format the code
+ 	poetry run ruff format && \
+ 	poetry run ruff check --fix && \
+-	docker compose run --rm app npx prettier --write ./*.md ./docs ./.github/workflows/* ./hushline
++	podman compose run --rm app npx prettier --write ./*.md ./docs ./.github/workflows/* ./hushline
+ 
+ .PHONY: revision
+ revision: migrate-prod ## Create a new migration
+@@ -45,5 +45,5 @@ endif
+ 
+ .PHONY: test
+ test: ## Run the test suite
+-	docker compose run --rm app \
++	podman compose run --rm app \
+ 		poetry run pytest --cov hushline --cov-report term --cov-report html -vv $(PYTEST_ADDOPTS) tests/$(test)
+diff --git a/scripts/local-postgres.sh b/scripts/local-postgres.sh
+index f4df3a3..61e4eeb 100755
+--- a/scripts/local-postgres.sh
++++ b/scripts/local-postgres.sh
+@@ -1,6 +1,6 @@
+ #!/usr/bin/env bash
+ 
+-docker run --rm -t -p 127.0.0.1:5432:5432 \
++podman run --rm -t -p 127.0.0.1:5432:5432 \
+     -e POSTGRES_USER=hushline \
+     -e POSTGRES_PASSWORD=hushline \
+     -e POSTGRES_DB=hushline \
