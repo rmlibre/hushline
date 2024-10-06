@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+from hmac import compare_digest as bytes_are_equal
 
 import aiohttp
 import pyotp
@@ -25,7 +26,7 @@ from wtforms import Field
 from ..crypto import is_valid_pgp_key
 from ..db import db
 from ..forms import TwoFactorForm
-from ..model import HostOrganization, Message, SMTPEncryption, User, Username
+from ..model import HostOrganization, Message, SMTPEncryption, Tier, User, Username
 from ..utils import (
     admin_authentication_required,
     authentication_required,
@@ -282,6 +283,16 @@ def create_blueprint() -> Blueprint:
             )
             user_count = len(all_users)
 
+        # Load the business tier price
+        business_tier = Tier.business_tier()
+        business_tier_display_price = ""
+        if business_tier:
+            price_usd = business_tier.monthly_amount / 100
+            if price_usd % 1 == 0:
+                business_tier_display_price = str(int(price_usd))
+            else:
+                business_tier_display_price = f"{price_usd:.2f}"
+
         # Prepopulate form fields
         email_forwarding_form.forwarding_enabled.data = user.email is not None
         if not user.pgp_key:
@@ -324,6 +335,8 @@ def create_blueprint() -> Blueprint:
             pgp_key_percentage=pgp_key_percentage,
             directory_visibility_form=directory_visibility_form,
             default_forwarding_enabled=bool(current_app.config["NOTIFICATIONS_ADDRESS"]),
+            # Premium-specific data
+            business_tier_display_price=business_tier_display_price,
         )
 
     @bp.route("/toggle-2fa", methods=["POST"])
@@ -354,22 +367,25 @@ def create_blueprint() -> Blueprint:
 
         change_password_form = ChangePasswordForm(request.form)
         if not change_password_form.validate_on_submit():
-            flash("New password is invalid.")
+            flash("⛔️ Invalid form data. Please try again.", "error")
             return redirect(url_for("settings.index"))
 
-        if not change_password_form.old_password.data or not user.check_password(
-            change_password_form.old_password.data
+        if not user.check_password(change_password_form.old_password.data):
+            flash("⛔️ Incorrect old password.", "error")
+            return redirect(url_for("settings.index"))
+
+        # SECURITY: only check equality after successful old password check
+        if bytes_are_equal(
+            change_password_form.old_password.data.encode(),
+            change_password_form.new_password.data.encode(),
         ):
-            flash("Incorrect old password.", "error")
+            flash("⛔️ Cannot choose a repeat password.", "error")
             return redirect(url_for("settings.index"))
 
         user.password_hash = change_password_form.new_password.data
         db.session.commit()
         session.clear()
-        flash(
-            "👍 Password successfully changed. Please log in again.",
-            "success",
-        )
+        flash("👍 Password successfully changed. Please log in again.", "success")
         return redirect(url_for("login"))
 
     @bp.route("/enable-2fa", methods=["GET", "POST"])
@@ -384,7 +400,7 @@ def create_blueprint() -> Blueprint:
             if (
                 verification_code
                 and temp_totp_secret
-                and pyotp.TOTP(temp_totp_secret).verify(verification_code)
+                and pyotp.TOTP(temp_totp_secret).verify(verification_code, valid_window=1)
                 and user
             ):
                 user.totp_secret = temp_totp_secret
@@ -449,7 +465,7 @@ def create_blueprint() -> Blueprint:
 
         verification_code = request.form["verification_code"]
         totp = pyotp.TOTP(user.totp_secret)
-        if not totp.verify(verification_code):
+        if not totp.verify(verification_code, valid_window=1):
             flash("⛔️ Invalid 2FA code. Please try again.")
             return redirect(url_for("show_qr_code"))
 
