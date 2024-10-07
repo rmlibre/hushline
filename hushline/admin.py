@@ -10,6 +10,7 @@ from .utils import admin_authentication_required
 def create_blueprint() -> Blueprint:
     bp = Blueprint("admin", __file__, url_prefix="/admin")
 
+    # TODO: #603 upcoming session cookie change
     @bp.route("/toggle_verified/<int:user_id>", methods=["POST"])
     @admin_authentication_required
     def toggle_verified(user_id: int) -> Response:
@@ -21,6 +22,7 @@ def create_blueprint() -> Blueprint:
         flash("✅ User verification status toggled.", "success")
         return redirect(url_for("settings.index"))
 
+    # TODO: #603 upcoming session cookie change
     @bp.route("/toggle_admin/<int:user_id>", methods=["POST"])
     @admin_authentication_required
     def toggle_admin(user_id: int) -> Response:

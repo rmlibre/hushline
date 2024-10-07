@@ -1,0 +1,349 @@
+diff --git a/hushline/__init__.py b/hushline/__init__.py
+index c7c1fe46..3d27974e 100644
+--- a/hushline/__init__.py
++++ b/hushline/__init__.py
+@@ -102,6 +102,7 @@ def create_app() -> Flask:
+ 
+     @app.context_processor
+     def inject_user() -> dict[str, Any]:
++        # TODO: #603 upcoming session cookie change
+         if "user_id" in session:
+             user = db.session.get(User, session["user_id"])
+             return {"user": user}
+diff --git a/hushline/admin.py b/hushline/admin.py
+index d07ae6b2..9ddda8b0 100644
+--- a/hushline/admin.py
++++ b/hushline/admin.py
+@@ -10,6 +10,7 @@ from .utils import admin_authentication_required
+ def create_blueprint() -> Blueprint:
+     bp = Blueprint("admin", __file__, url_prefix="/admin")
+ 
++    # TODO: #603 upcoming session cookie change
+     @bp.route("/toggle_verified/<int:user_id>", methods=["POST"])
+     @admin_authentication_required
+     def toggle_verified(user_id: int) -> Response:
+@@ -21,6 +22,7 @@ def create_blueprint() -> Blueprint:
+         flash("✅ User verification status toggled.", "success")
+         return redirect(url_for("settings.index"))
+ 
++    # TODO: #603 upcoming session cookie change
+     @bp.route("/toggle_admin/<int:user_id>", methods=["POST"])
+     @admin_authentication_required
+     def toggle_admin(user_id: int) -> Response:
+diff --git a/hushline/premium.py b/hushline/premium.py
+index 78ead1af..d771e6e5 100644
+--- a/hushline/premium.py
++++ b/hushline/premium.py
+@@ -365,6 +365,7 @@ def create_blueprint(app: Flask) -> Blueprint:
+     @bp.route("/")
+     @authentication_required
+     def index() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+@@ -390,6 +391,7 @@ def create_blueprint(app: Flask) -> Blueprint:
+     @bp.route("/select-tier")
+     @authentication_required
+     def select_tier() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+@@ -402,6 +404,7 @@ def create_blueprint(app: Flask) -> Blueprint:
+     @bp.route("/select-tier/free", methods=["POST"])
+     @authentication_required
+     def select_free() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+@@ -422,6 +425,7 @@ def create_blueprint(app: Flask) -> Blueprint:
+     @bp.route("/upgrade", methods=["POST"])
+     @authentication_required
+     def upgrade() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+@@ -476,6 +480,7 @@ def create_blueprint(app: Flask) -> Blueprint:
+     @bp.route("/disable-autorenew", methods=["POST"])
+     @authentication_required
+     def disable_autorenew() -> Response | str | Tuple[Response | str, int]:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+@@ -504,6 +509,7 @@ def create_blueprint(app: Flask) -> Blueprint:
+     @bp.route("/enable-autorenew", methods=["POST"])
+     @authentication_required
+     def enable_autorenew() -> Response | str | Tuple[Response | str, int]:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+@@ -532,6 +538,7 @@ def create_blueprint(app: Flask) -> Blueprint:
+     @bp.route("/cancel", methods=["POST"])
+     @authentication_required
+     def cancel() -> Response | str | Tuple[Response | str, int]:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+@@ -562,6 +569,7 @@ def create_blueprint(app: Flask) -> Blueprint:
+     @bp.route("/status.json")
+     @authentication_required
+     def status() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+diff --git a/hushline/routes.py b/hushline/routes.py
+index 86352adf..4b40b9ec 100644
+--- a/hushline/routes.py
++++ b/hushline/routes.py
+@@ -101,12 +101,15 @@ def get_ip_address() -> str:
+ def init_app(app: Flask) -> None:
+     @app.route("/")
+     def index() -> Response:
++        # TODO: #603 upcoming session cookie change
+         if "user_id" in session:
++            # TODO: #603 upcoming session cookie change
+             user = db.session.get(User, session.get("user_id"))
+             if user:
+                 return redirect(url_for("inbox"))
+ 
+             flash("🫥 User not found. Please log in again.")
++            # TODO: #603 upcoming session cookie change
+             session.pop("user_id", None)  # Clear the invalid user_id from session
+             return redirect(url_for("login"))
+ 
+@@ -115,6 +118,7 @@ def init_app(app: Flask) -> None:
+     @app.route("/inbox")
+     @authentication_required
+     def inbox() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             flash("👉 Please log in to access your inbox.")
+@@ -167,6 +171,7 @@ def init_app(app: Flask) -> None:
+             user=uname.user,
+             username=uname,
+             display_name_or_username=uname.display_name or uname.username,
++            # TODO: #603 upcoming session cookie change
+             current_user_id=session.get("user_id"),
+             public_key=uname.user.pgp_key,
+             is_personal_server=app.config["IS_PERSONAL_SERVER"],
+@@ -274,10 +279,12 @@ def init_app(app: Flask) -> None:
+     @app.route("/delete_message/<int:message_id>", methods=["POST"])
+     @authentication_required
+     def delete_message(message_id: int) -> Response:
++        # TODO: #603 upcoming session cookie change
+         if "user_id" not in session:
+             flash("🔑 Please log in to continue.")
+             return redirect(url_for("login"))
+ 
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             flash("🫥 User not found. Please log in again.")
+@@ -313,6 +320,7 @@ def init_app(app: Flask) -> None:
+     def register() -> Response | str | tuple[Response | str, int]:
+         if (
+             session.get("is_authenticated", False)
++            # TODO: #603 upcoming session cookie change
+             and (user_id := session.get("user_id", False))
+             and db.session.get(User, user_id)
+         ):
+@@ -379,6 +387,7 @@ def init_app(app: Flask) -> None:
+ 
+     @app.route("/login", methods=["GET", "POST"])
+     def login() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         if "user_id" in session and session.get("is_authenticated", False):
+             flash("👉 You are already logged in.")
+             return redirect(url_for("inbox"))
+@@ -390,6 +399,7 @@ def init_app(app: Flask) -> None:
+             ).one_or_none()
+             if username and username.user.check_password(form.password.data):
+                 session.permanent = True
++                # TODO: #603 upcoming session cookie change
+                 session["user_id"] = username.user_id
+                 session["username"] = username.username
+                 session["is_authenticated"] = True
+@@ -421,6 +431,7 @@ def init_app(app: Flask) -> None:
+     @app.route("/verify-2fa-login", methods=["GET", "POST"])
+     def verify_2fa_login() -> Response | str | tuple[Response | str, int]:
+         # Redirect to login if the login process has not started yet
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         if not user:
+             session.clear()
+@@ -519,6 +530,7 @@ def init_app(app: Flask) -> None:
+ 
+     @app.route("/directory")
+     def directory() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         logged_in = "user_id" in session
+         is_personal_server = app.config["IS_PERSONAL_SERVER"]
+         return render_template(
+@@ -530,6 +542,7 @@ def init_app(app: Flask) -> None:
+ 
+     @app.route("/directory/get-session-user.json")
+     def session_user() -> dict[str, bool]:
++        # TODO: #603 upcoming session cookie change
+         logged_in = "user_id" in session
+         return {"logged_in": logged_in}
+ 
+diff --git a/hushline/settings/__init__.py b/hushline/settings/__init__.py
+index 619429a1..40433036 100644
+--- a/hushline/settings/__init__.py
++++ b/hushline/settings/__init__.py
+@@ -201,6 +201,7 @@ def create_blueprint() -> Blueprint:
+     @authentication_required
+     @bp.route("/", methods=["GET", "POST"])
+     async def index() -> str | Response:
++        # TODO: #603 upcoming session cookie change
+         user_id = session.get("user_id")
+         if not user_id:
+             return redirect(url_for("login"))
+@@ -342,6 +343,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/toggle-2fa", methods=["POST"])
+     @authentication_required
+     def toggle_2fa() -> Response:
++        # TODO: #603 upcoming session cookie change
+         user_id = session.get("user_id")
+         if not user_id:
+             return redirect(url_for("login"))
+@@ -355,6 +357,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/change-password", methods=["POST"])
+     @authentication_required
+     def change_password() -> str | Response:
++        # TODO: #603 upcoming session cookie change
+         user_id = session.get("user_id")
+         if not user_id:
+             flash("Session expired, please log in again.", "info")
+@@ -391,6 +394,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/enable-2fa", methods=["GET", "POST"])
+     @authentication_required
+     def enable_2fa() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session.get("user_id"))
+         form = TwoFactorForm()
+ 
+@@ -436,6 +440,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/disable-2fa", methods=["POST"])
+     @authentication_required
+     def disable_2fa() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user_id = session.get("user_id")
+         if not user_id:
+             return redirect(url_for("login"))
+@@ -455,6 +460,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/verify-2fa-setup", methods=["POST"])
+     @authentication_required
+     def verify_2fa_setup() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session["user_id"])
+         if not user:
+             return redirect(url_for("login"))
+@@ -476,6 +482,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/update_pgp_key_proton", methods=["POST"])
+     @authentication_required
+     def update_pgp_key_proton() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user_id = session.get("user_id")
+         if not user_id:
+             flash("⛔️ User not authenticated.")
+@@ -521,6 +528,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/update-pgp-key", methods=["POST"])
+     @authentication_required
+     def update_pgp_key() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user_id = session.get("user_id")
+         if not user_id:
+             flash("⛔️ User not authenticated.")
+@@ -556,6 +564,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/update-smtp-settings", methods=["POST"])
+     @authentication_required
+     def update_smtp_settings() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user_id = session.get("user_id")
+         if not user_id:
+             return redirect(url_for("login"))
+@@ -664,6 +673,7 @@ def create_blueprint() -> Blueprint:
+     @bp.route("/delete-account", methods=["POST"])
+     @authentication_required
+     def delete_account() -> Response | str:
++        # TODO: #603 upcoming session cookie change
+         user_id = session.get("user_id")
+         if not user_id:
+             flash("Please log in to continue.")
+@@ -692,6 +702,7 @@ def create_blueprint() -> Blueprint:
+     async def alias(username_id: int) -> Response | str:
+         alias = db.session.scalars(
+             db.select(Username).filter_by(
++                # TODO: #603 upcoming session cookie change
+                 id=username_id, user_id=session["user_id"], is_primary=False
+             )
+         ).one_or_none()
+diff --git a/hushline/templates/base.html b/hushline/templates/base.html
+index 19544f51..d0dfd81a 100644
+--- a/hushline/templates/base.html
++++ b/hushline/templates/base.html
+@@ -106,6 +106,7 @@
+         <div class="navGroup">
+           <a class="mobileNav btnIcon" aria-label="Navigation menu">Menu</a>
+           <ul>
++            <!-- TODO: #603 upcoming session cookie change -->
+             {% if 'user_id' in session and (session.get('is_authenticated', False)) %}
+               {% if is_premium_enabled and user.is_free_tier %}
+               <li>
+@@ -121,6 +122,7 @@
+             {% if not is_personal_server %}
+               <li><a href="{{ url_for('vision') }}">Vision</a></li>
+             {% endif %}
++            <!-- TODO: #603 upcoming session cookie change -->
+             {% if 'user_id' in session and (session.get('is_authenticated', False)) %}
+               <li>
+                 <a href="{{ url_for('inbox', username=session.username) }}"
+diff --git a/hushline/templates/settings/admin.html b/hushline/templates/settings/admin.html
+index 5c93f6eb..df39bbf2 100644
+--- a/hushline/templates/settings/admin.html
++++ b/hushline/templates/settings/admin.html
+@@ -37,6 +37,7 @@
+           Admin: {{ "✅ Yes" if user.is_admin else "👎 No" }}
+         </p>
+         <div class="tableActions">
++          <!-- TODO: #603 upcoming session cookie change -->
+           <form
+             action="{{ url_for('admin.toggle_verified', user_id=user.id) }}"
+             method="POST"
+@@ -44,6 +45,7 @@
+           >
+             <button type="submit">Toggle Verified</button>
+           </form>
++          <!-- TODO: #603 upcoming session cookie change -->
+           <form
+             action="{{ url_for('admin.toggle_admin', user_id=user.id) }}"
+             method="POST"
+diff --git a/hushline/utils.py b/hushline/utils.py
+index def218b4..c913b698 100644
+--- a/hushline/utils.py
++++ b/hushline/utils.py
+@@ -16,6 +16,7 @@ from .db import db
+ def authentication_required(f: Callable[..., Any]) -> Callable[..., Any]:
+     @wraps(f)
+     def decorated_function(*args: Any, **kwargs: Any) -> Any:
++        # TODO: #603 upcoming session cookie change
+         if "user_id" not in session:
+             flash("👉 Please complete authentication.")
+             return redirect(url_for("login"))
+@@ -32,6 +33,7 @@ def admin_authentication_required(f: Callable[..., Any]) -> Callable[..., Any]:
+     @wraps(f)
+     @authentication_required
+     def decorated_function(*args: Any, **kwargs: Any) -> Any:
++        # TODO: #603 upcoming session cookie change
+         user = db.session.get(User, session["user_id"])
+         if not user or not user.is_admin:
+             abort(403)

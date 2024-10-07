@@ -106,6 +106,7 @@
         <div class="navGroup">
           <a class="mobileNav btnIcon" aria-label="Navigation menu">Menu</a>
           <ul>
+            <!-- TODO: #603 upcoming session cookie change -->
             {% if 'user_id' in session and (session.get('is_authenticated', False)) %}
               {% if is_premium_enabled and user.is_free_tier %}
               <li>
@@ -121,6 +122,7 @@
             {% if not is_personal_server %}
               <li><a href="{{ url_for('vision') }}">Vision</a></li>
             {% endif %}
+            <!-- TODO: #603 upcoming session cookie change -->
             {% if 'user_id' in session and (session.get('is_authenticated', False)) %}
               <li>
                 <a href="{{ url_for('inbox', username=session.username) }}"

@@ -365,6 +365,7 @@ def create_blueprint(app: Flask) -> Blueprint:
     @bp.route("/")
     @authentication_required
     def index() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
@@ -390,6 +391,7 @@ def create_blueprint(app: Flask) -> Blueprint:
     @bp.route("/select-tier")
     @authentication_required
     def select_tier() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
@@ -402,6 +404,7 @@ def create_blueprint(app: Flask) -> Blueprint:
     @bp.route("/select-tier/free", methods=["POST"])
     @authentication_required
     def select_free() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
@@ -422,6 +425,7 @@ def create_blueprint(app: Flask) -> Blueprint:
     @bp.route("/upgrade", methods=["POST"])
     @authentication_required
     def upgrade() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
@@ -476,6 +480,7 @@ def create_blueprint(app: Flask) -> Blueprint:
     @bp.route("/disable-autorenew", methods=["POST"])
     @authentication_required
     def disable_autorenew() -> Response | str | Tuple[Response | str, int]:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
@@ -504,6 +509,7 @@ def create_blueprint(app: Flask) -> Blueprint:
     @bp.route("/enable-autorenew", methods=["POST"])
     @authentication_required
     def enable_autorenew() -> Response | str | Tuple[Response | str, int]:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
@@ -532,6 +538,7 @@ def create_blueprint(app: Flask) -> Blueprint:
     @bp.route("/cancel", methods=["POST"])
     @authentication_required
     def cancel() -> Response | str | Tuple[Response | str, int]:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
@@ -562,6 +569,7 @@ def create_blueprint(app: Flask) -> Blueprint:
     @bp.route("/status.json")
     @authentication_required
     def status() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
