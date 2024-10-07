@@ -201,6 +201,7 @@ def create_blueprint() -> Blueprint:
     @authentication_required
     @bp.route("/", methods=["GET", "POST"])
     async def index() -> str | Response:
+        # TODO: #603 upcoming session cookie change
         user_id = session.get("user_id")
         if not user_id:
             return redirect(url_for("login"))
@@ -342,6 +343,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/toggle-2fa", methods=["POST"])
     @authentication_required
     def toggle_2fa() -> Response:
+        # TODO: #603 upcoming session cookie change
         user_id = session.get("user_id")
         if not user_id:
             return redirect(url_for("login"))
@@ -355,6 +357,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/change-password", methods=["POST"])
     @authentication_required
     def change_password() -> str | Response:
+        # TODO: #603 upcoming session cookie change
         user_id = session.get("user_id")
         if not user_id:
             flash("Session expired, please log in again.", "info")
@@ -391,6 +394,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/enable-2fa", methods=["GET", "POST"])
     @authentication_required
     def enable_2fa() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         form = TwoFactorForm()
 
@@ -436,6 +440,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/disable-2fa", methods=["POST"])
     @authentication_required
     def disable_2fa() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user_id = session.get("user_id")
         if not user_id:
             return redirect(url_for("login"))
@@ -455,6 +460,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/verify-2fa-setup", methods=["POST"])
     @authentication_required
     def verify_2fa_setup() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session["user_id"])
         if not user:
             return redirect(url_for("login"))
@@ -476,6 +482,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/update_pgp_key_proton", methods=["POST"])
     @authentication_required
     def update_pgp_key_proton() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user_id = session.get("user_id")
         if not user_id:
             flash("⛔️ User not authenticated.")
@@ -521,6 +528,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/update-pgp-key", methods=["POST"])
     @authentication_required
     def update_pgp_key() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user_id = session.get("user_id")
         if not user_id:
             flash("⛔️ User not authenticated.")
@@ -556,6 +564,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/update-smtp-settings", methods=["POST"])
     @authentication_required
     def update_smtp_settings() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user_id = session.get("user_id")
         if not user_id:
             return redirect(url_for("login"))
@@ -664,6 +673,7 @@ def create_blueprint() -> Blueprint:
     @bp.route("/delete-account", methods=["POST"])
     @authentication_required
     def delete_account() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user_id = session.get("user_id")
         if not user_id:
             flash("Please log in to continue.")
@@ -692,6 +702,7 @@ def create_blueprint() -> Blueprint:
     async def alias(username_id: int) -> Response | str:
         alias = db.session.scalars(
             db.select(Username).filter_by(
+                # TODO: #603 upcoming session cookie change
                 id=username_id, user_id=session["user_id"], is_primary=False
             )
         ).one_or_none()

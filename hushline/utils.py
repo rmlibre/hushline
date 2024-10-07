@@ -16,6 +16,7 @@ from .db import db
 def authentication_required(f: Callable[..., Any]) -> Callable[..., Any]:
     @wraps(f)
     def decorated_function(*args: Any, **kwargs: Any) -> Any:
+        # TODO: #603 upcoming session cookie change
         if "user_id" not in session:
             flash("👉 Please complete authentication.")
             return redirect(url_for("login"))
@@ -32,6 +33,7 @@ def admin_authentication_required(f: Callable[..., Any]) -> Callable[..., Any]:
     @wraps(f)
     @authentication_required
     def decorated_function(*args: Any, **kwargs: Any) -> Any:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session["user_id"])
         if not user or not user.is_admin:
             abort(403)

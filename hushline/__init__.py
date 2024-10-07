@@ -102,6 +102,7 @@ def create_app() -> Flask:
 
     @app.context_processor
     def inject_user() -> dict[str, Any]:
+        # TODO: #603 upcoming session cookie change
         if "user_id" in session:
             user = db.session.get(User, session["user_id"])
             return {"user": user}

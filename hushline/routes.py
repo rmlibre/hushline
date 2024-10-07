@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 import secrets
@@ -101,12 +102,15 @@ def get_ip_address() -> str:
 def init_app(app: Flask) -> None:
     @app.route("/")
     def index() -> Response:
+        # TODO: #603 upcoming session cookie change
         if "user_id" in session:
+            # TODO: #603 upcoming session cookie change
             user = db.session.get(User, session.get("user_id"))
             if user:
                 return redirect(url_for("inbox"))
 
             flash("🫥 User not found. Please log in again.")
+            # TODO: #603 upcoming session cookie change
             session.pop("user_id", None)  # Clear the invalid user_id from session
             return redirect(url_for("login"))
 
@@ -115,6 +119,7 @@ def init_app(app: Flask) -> None:
     @app.route("/inbox")
     @authentication_required
     def inbox() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             flash("👉 Please log in to access your inbox.")
@@ -167,6 +172,7 @@ def init_app(app: Flask) -> None:
             user=uname.user,
             username=uname,
             display_name_or_username=uname.display_name or uname.username,
+            # TODO: #603 upcoming session cookie change
             current_user_id=session.get("user_id"),
             public_key=uname.user.pgp_key,
             is_personal_server=app.config["IS_PERSONAL_SERVER"],
@@ -274,10 +280,12 @@ def init_app(app: Flask) -> None:
     @app.route("/delete_message/<int:message_id>", methods=["POST"])
     @authentication_required
     def delete_message(message_id: int) -> Response:
+        # TODO: #603 upcoming session cookie change
         if "user_id" not in session:
             flash("🔑 Please log in to continue.")
             return redirect(url_for("login"))
 
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             flash("🫥 User not found. Please log in again.")
@@ -313,6 +321,7 @@ def init_app(app: Flask) -> None:
     def register() -> Response | str | tuple[Response | str, int]:
         if (
             session.get("is_authenticated", False)
+            # TODO: #603 upcoming session cookie change
             and (user_id := session.get("user_id", False))
             and db.session.get(User, user_id)
         ):
@@ -379,6 +388,7 @@ def init_app(app: Flask) -> None:
 
     @app.route("/login", methods=["GET", "POST"])
     def login() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         if "user_id" in session and session.get("is_authenticated", False):
             flash("👉 You are already logged in.")
             return redirect(url_for("inbox"))
@@ -390,6 +400,7 @@ def init_app(app: Flask) -> None:
             ).one_or_none()
             if username and username.user.check_password(form.password.data):
                 session.permanent = True
+                # TODO: #603 upcoming session cookie change
                 session["user_id"] = username.user_id
                 session["username"] = username.username
                 session["is_authenticated"] = True
@@ -421,6 +432,7 @@ def init_app(app: Flask) -> None:
     @app.route("/verify-2fa-login", methods=["GET", "POST"])
     def verify_2fa_login() -> Response | str | tuple[Response | str, int]:
         # Redirect to login if the login process has not started yet
+        # TODO: #603 upcoming session cookie change
         user = db.session.get(User, session.get("user_id"))
         if not user:
             session.clear()
@@ -519,6 +531,7 @@ def init_app(app: Flask) -> None:
 
     @app.route("/directory")
     def directory() -> Response | str:
+        # TODO: #603 upcoming session cookie change
         logged_in = "user_id" in session
         is_personal_server = app.config["IS_PERSONAL_SERVER"]
         return render_template(
@@ -530,6 +543,7 @@ def init_app(app: Flask) -> None:
 
     @app.route("/directory/get-session-user.json")
     def session_user() -> dict[str, bool]:
+        # TODO: #603 upcoming session cookie change
         logged_in = "user_id" in session
         return {"logged_in": logged_in}
 
@@ -564,3 +578,8 @@ def init_app(app: Flask) -> None:
     @app.route("/health.json")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.route('/session_info')
+    def session_info() -> str:
+        expiration = app.session_interface.get_expiration_time(app, session)
+        return json.dumps(dict(session, expiration=str(expiration)), indent=4)
